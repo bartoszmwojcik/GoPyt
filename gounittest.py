@@ -3,6 +3,8 @@
 import unittest
 from gotypes import Color, Player, Point, Move
 from goboard1 import Board, GameState
+from agent.helpers import is_eye
+from agent.naive import RandomBot
 
 class TestBoard(unittest.TestCase):
     def test_initialization(self):
@@ -98,6 +100,47 @@ class TestGameState(unittest.TestCase):
         game = GameState.new_game(19).apply_move(Move.resign())
         self.assertTrue(game.is_over())
         
+class TestIsEye(unittest.TestCase):
+    def test_is_eye(self):
+        board = Board(num_rows=19, num_cols=19)
+        # place some stones on the board
+        board.place_stone(Player(Color.BLACK), Point(row=1, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=1, col=2))
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=3))
+        board.place_stone(Player(Color.BLACK), Point(row=3, col=2))
+        board.place_stone(Player(Color.BLACK), Point(row=3, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=3, col=3))
+        # middle of the board
+        self.assertTrue(is_eye(board, Point(row=2, col=2), Color.BLACK))  # Should be an eye.
+        self.assertFalse(is_eye(board, Point(row=2, col=2), Color.WHITE))  # Should not be an eye for WHITE.
+
+        # corner of the board
+        board = Board(num_rows=19, num_cols=19)
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=2))
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=1, col=2))
+        self.assertTrue(is_eye(board, Point(row=1, col=1), Color.BLACK))  # Should be an eye.
+        self.assertFalse(is_eye(board, Point(row=1, col=1), Color.WHITE))  # Should not be an eye for WHITE.
+
+        # edge of the board
+        board = Board(num_rows=19, num_cols=19)
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=2))
+        board.place_stone(Player(Color.BLACK), Point(row=2, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=3, col=2))
+        board.place_stone(Player(Color.BLACK), Point(row=4, col=1))
+        board.place_stone(Player(Color.BLACK), Point(row=4, col=2))      
+        self.assertTrue(is_eye(board, Point(row=3, col=1), Color.BLACK))  # Should be an eye.
+        self.assertFalse(is_eye(board, Point(row=3, col=1), Color.WHITE))  # Should not be an eye for WHITE.
+        self.assertFalse(is_eye(board, Point(row=5, col=1), Color.BLACK))  # Should not be an eye.
+
+    def test_select_move(self):
+        #board = Board(19)
+        game = GameState.new_game(19)
+        bot = RandomBot("naive")
+
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
 
 if __name__ == '__main__':
     unittest.main()

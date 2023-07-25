@@ -172,3 +172,5 @@ class GameState:
         if second_last_move is None:
             return False
         return self.last_move.is_pass and second_last_move.is_pass
+
+ 
