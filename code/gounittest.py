@@ -5,6 +5,7 @@ from dlgo.gotypes import Color, Player, Point, Move
 from dlgo.goboard1 import Board, GameState
 from dlgo.agent.helpers import is_eye
 from dlgo.agent.naive import RandomBot
+from dlgo.zobrist import init_zobrist, update_hash
 
 class TestBoard(unittest.TestCase):
     def test_initialization(self):
@@ -151,8 +152,38 @@ class TestRandomBot(unittest.TestCase):
         move = bot.select_move(game)
         self.assertTrue(game.is_valid_move(move))  # selected move should be valid
 
-        game.board.print_board()
+        #game.board.print_board()
         
+class TestZobristHashing(unittest.TestCase):
+    # ...
+    def test_place_and_remove(self):
+        zobrist_table = init_zobrist(19)
+        initial_hash = 0
+
+        for row_a in range(1, 20):
+            for col_a in range(1, 20):
+                point_a = Point(row=row_a, col=col_a)
+
+                # Place a black stone and update the hash.
+                hash_a = update_hash(initial_hash, Color.BLACK, point_a, zobrist_table)
+
+                for row_b in range(1, 20):
+                    for col_b in range(1, 20):
+                        point_b = Point(row=row_b, col=col_b)
+
+                        if point_a != point_b:
+                            # Place a white stone and update the hash.
+                            current_hash = update_hash(hash_a, Color.WHITE, point_b, zobrist_table)
+
+                            # Remove the black stone and update the hash.
+                            current_hash = update_hash(current_hash, Color.BLACK, point_a, zobrist_table)
+
+                            # Remove the white stone and update the hash.
+                            current_hash = update_hash(current_hash, Color.WHITE, point_b, zobrist_table)
+
+                            # Check that the hash is the same as before.
+                            self.assertEqual(current_hash, initial_hash)
+
 
 if __name__ == '__main__':
     unittest.main()
