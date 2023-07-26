@@ -1,5 +1,5 @@
 # Filename: goboard1.py
-from gotypes import Point, Player, GoString, Color
+from .gotypes import Point, Player, GoString, Color
 import copy
 
 COLS = 'ABCDEFGHJKLMNOPQERT'

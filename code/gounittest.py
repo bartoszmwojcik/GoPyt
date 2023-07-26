@@ -1,10 +1,10 @@
 # Filename: gounittest.py
 
 import unittest
-from gotypes import Color, Player, Point, Move
-from goboard1 import Board, GameState
-from agent.helpers import is_eye
-from agent.naive import RandomBot
+from dlgo.gotypes import Color, Player, Point, Move
+from dlgo.goboard1 import Board, GameState
+from dlgo.agent.helpers import is_eye
+from dlgo.agent.naive import RandomBot
 
 class TestBoard(unittest.TestCase):
     def test_initialization(self):
@@ -134,13 +134,25 @@ class TestIsEye(unittest.TestCase):
         self.assertFalse(is_eye(board, Point(row=3, col=1), Color.WHITE))  # Should not be an eye for WHITE.
         self.assertFalse(is_eye(board, Point(row=5, col=1), Color.BLACK))  # Should not be an eye.
 
+class TestRandomBot(unittest.TestCase):
+
     def test_select_move(self):
         #board = Board(19)
-        game = GameState.new_game(19)
+        game = GameState.new_game(9)
         bot = RandomBot("naive")
-
         move = bot.select_move(game)
         self.assertTrue(game.is_valid_move(move))  # selected move should be valid
+        
+        game = game.apply_move(move)
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
+
+        game = game.apply_move(move)
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
+
+        game.board.print_board()
+        
 
 if __name__ == '__main__':
     unittest.main()

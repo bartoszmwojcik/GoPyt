@@ -1,6 +1,6 @@
 #Filename:  base.py
 from abc import ABC, abstractmethod
-from gotypes import Player
+from ..gotypes import Player
 
 class Bot(ABC):
     @abstractmethod

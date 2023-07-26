@@ -1,5 +1,5 @@
 # Filename: helpers.py
-from gotypes import Point, Color, Move
+from ..gotypes import Point, Color, Move
 
 def is_eye(board, point, color):
     if board._grid.get(point) is not None:
@@ -39,7 +39,7 @@ def legal_moves(game_state):
         for col in range(1, game_state.board.num_cols + 1):
             move = Move.play(Point(row, col))
             if game_state.is_valid_move(move) and \
-                not is_eye(game_state.board, Point(row, col), game_state.next_player):
+                not is_eye(game_state.board, Point(row, col), game_state.next_player.color):
                 moves.append(move)
     # Include pass and resign for completeness
     if not moves:

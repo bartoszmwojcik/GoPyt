@@ -1,9 +1,9 @@
 #Filename: naive.py
 
-from agent.base import Bot
-from gotypes import Player
+from .base import Bot
+from ..gotypes import Player
 import random
-from agent.helpers import legal_moves
+from .helpers import legal_moves
 
 class RandomBot(Bot):
     def __init__(self, name):
