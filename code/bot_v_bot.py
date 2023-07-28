@@ -1,6 +1,6 @@
 from dlgo.agent.naive import RandomBot
 from dlgo.gotypes import Player, Color
-from dlgo.goboard1 import GameState
+from dlgo.goboard import GameState
 from dlgo.utils import print_move #, print_board
 import time
 #import keyboard

@@ -1,5 +1,6 @@
-# Filename: dlgo/goboard1.py
+# Filename: dlgo/goboard.py
 from .gotypes import Point, Player, GoString, Color
+from . import zobrist
 import copy
 
 COLS = 'ABCDEFGHJKLMNOPQERT'
@@ -14,7 +15,10 @@ class Board:
         self.num_rows = num_rows
         self.num_cols = num_cols
         self._grid = {}
-        
+        self.zobrist_hash = 0
+        # initial table of all hashes
+        self.zobrist_hashes = zobrist.init_zobrist (num_rows) 
+    
     def place_stone(self, player, point):
         assert self.is_on_grid(point)
         assert self._grid.get(point) is None
@@ -43,6 +47,7 @@ class Board:
         for other_color_string in adjacent_opposite_color:
             other_color_string.remove_liberty(point)
         self._remove_dead_strings(adjacent_opposite_color, player)
+        self.zobrist_hash ^= self.zobrist_hashes[point, player.color]  # update hash when a stone is placed
 
 
     def is_on_grid(self, point):
@@ -65,6 +70,7 @@ class Board:
                     neighbor_string.add_liberty(point)
             del(self._grid[point])
             #self._grid[point] = None
+            self.zobrist_hash ^= self.zobrist_hashes[point, string.color]  # update hash when a stone is removed
 
     def print_board (self):
         for row in range (self.num_rows, 0, -1):
@@ -91,10 +97,17 @@ class Board:
 
 
 class GameState:
-    def __init__(self, board, next_player, previous_state, last_move):
+    def __init__(self, board, next_player, previous, last_move):
         self.board = board
         self.next_player = next_player
-        self.previous_state = previous_state
+        self.previous_state = previous
+        if previous is None:
+            self.previous_states = frozenset()
+        else:
+            self.previous_states = frozenset(
+                previous.previous_states |
+                {(previous.next_player.color, previous.board.zobrist_hash)}
+            )
         self.last_move = last_move
 
     def apply_move(self, move):
@@ -134,13 +147,14 @@ class GameState:
             return False
         next_board = copy.deepcopy(self.board)
         next_board.place_stone(player, move.point)
-        next_situation = (player.other, next_board)
-        past_state = self.previous_state
-        while past_state is not None:
-            if past_state.situation == next_situation:
-                return True
-            past_state = past_state.previous_state
-        return False
+        next_situation = (player.other.color, next_board.zobrist_hash)
+        return next_situation in self.previous_states
+        #past_state = self.previous_state
+        #while past_state is not None:
+        #    if past_state.situation == next_situation:
+        #        return True
+        #    past_state = past_state.previous_state
+        #return False
 
     def is_valid_move(self, move):
         """Determine if a move can be played in the current game state."""

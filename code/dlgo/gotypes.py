@@ -1,4 +1,4 @@
-# Filename: gotypes.py
+# Filename: dlgo/gotypes.py
 
 from enum import Enum
 from collections import namedtuple
