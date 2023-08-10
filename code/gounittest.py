@@ -5,7 +5,7 @@ from dlgo.gotypes import Color, Player, Point, Move
 from dlgo.goboard1 import Board, GameState
 import dlgo.goboard as goboard
 from dlgo.agent.helpers import is_eye
-from dlgo.agent.naive import RandomBot
+from dlgo.agent.naive import RandomBot, SafetyBot
 from dlgo.zobrist import init_zobrist, update_hash
 
 class TestBoard1(unittest.TestCase):
@@ -277,6 +277,22 @@ class TestZobristHashing(unittest.TestCase):
                             # Check that the hash is the same as before.
                             self.assertEqual(current_hash, initial_hash)
 
+class TestSafetyBot(unittest.TestCase):
+
+    def test_select_move(self):
+        #board = Board(19)
+        game = GameState.new_game(9)
+        bot = SafetyBot("SafetyBot")
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
+        
+        game = game.apply_move(move)
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
+
+        game = game.apply_move(move)
+        move = bot.select_move(game)
+        self.assertTrue(game.is_valid_move(move))  # selected move should be valid
 
 if __name__ == '__main__':
     unittest.main()

@@ -1,3 +1,4 @@
+# Filename: bot_v_bot.py
 from dlgo.agent.naive import RandomBot
 from dlgo.gotypes import Player, Color
 from dlgo.goboard import GameState
