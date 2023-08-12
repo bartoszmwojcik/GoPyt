@@ -6,13 +6,14 @@ import sys
 from dlgo import goboard
 from dlgo import gotypes
 from dlgo.utils import print_move
-from dlgo.agent.naive import RandomBot, SafetyBot
+from dlgo.agent.naive import RandomBot, SafetyBot, MinimaxBot
+from dlgo.agent.helpers import evaluate_safety_nuanced, evaluate_territory, evaluate_safety, evaluate_high_safety
 
 # Pygame-specific settings
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 ORANGE = (231,158,107)
-GRID_SIZE = 9
+GRID_SIZE = 5
 SQUARE_SIZE = 80  # size of each square on the board
 WIDTH = HEIGHT = SQUARE_SIZE * GRID_SIZE
 STONE_RADIUS = SQUARE_SIZE * 0.4
@@ -20,7 +21,14 @@ STONE_RADIUS = SQUARE_SIZE * 0.4
 # Create Pygame screen
 pygame.init()
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption ("Random vs Safety")
+#pygame.display.set_caption ("Safety vs Safety Nuanced")
+#pygame.display.set_caption ("Safety Nuanced vs Safety")
+#pygame.display.set_caption ("Random vs Safety Nuanced")
+#pygame.display.set_caption ("Random vs Safety")
+#pygame.display.set_caption ("Random vs Territory")
+#pygame.display.set_caption ("Random vs High Safety")
+pygame.display.set_caption ("Safety Nuanced 3x vs Safety Nuanced")
+
 game = None
 
 while game is None:
@@ -33,8 +41,13 @@ while game is None:
             game = goboard.GameState.new_game(GRID_SIZE)
 
 bots = {
-    gotypes.Color.BLACK: RandomBot("black"),
-    gotypes.Color.WHITE: SafetyBot("white"), 
+#    gotypes.Color.BLACK: RandomBot("black"),
+#    gotypes.Color.BLACK: SafetyBot("black", evaluate_safety),
+    gotypes.Color.BLACK: MinimaxBot("black", 3, evaluate_safety_nuanced),
+#    gotypes.Color.WHITE: SafetyBot("white", evaluate_safety_nuanced), 
+    gotypes.Color.WHITE: SafetyBot("white", evaluate_safety_nuanced), 
+#    gotypes.Color.WHITE: SafetyBot("white", evaluate_safety), 
+#    gotypes.Color.WHITE: SafetyBot("white", evaluate_territory), 
 }
 
 while game is not None:

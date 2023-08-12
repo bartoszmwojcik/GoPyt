@@ -4,7 +4,7 @@ import unittest
 from dlgo.gotypes import Color, Player, Point, Move
 from dlgo.goboard1 import Board, GameState
 import dlgo.goboard as goboard
-from dlgo.agent.helpers import is_eye
+from dlgo.agent.helpers import is_eye, evaluate_safety_nuanced
 from dlgo.agent.naive import RandomBot, SafetyBot
 from dlgo.zobrist import init_zobrist, update_hash
 
@@ -282,7 +282,7 @@ class TestSafetyBot(unittest.TestCase):
     def test_select_move(self):
         #board = Board(19)
         game = GameState.new_game(9)
-        bot = SafetyBot("SafetyBot")
+        bot = SafetyBot("SafetyBot", evaluate_safety_nuanced)
         move = bot.select_move(game)
         self.assertTrue(game.is_valid_move(move))  # selected move should be valid
         

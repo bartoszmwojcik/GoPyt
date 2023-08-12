@@ -2,10 +2,13 @@
 
 from .base import Bot
 from ..gotypes import Player, Move, Color
-import random
+import random, sys, time
 from .helpers import legal_moves
 
 __all__ = ['RandomBot', 'SafetyBot']
+
+MAX_SCORE = float('inf')
+MIN_SCORE = float('-inf')
 
 class RandomBot(Bot):
     def __init__(self, name):
@@ -27,9 +30,10 @@ class RandomBot(Bot):
         self._color = color
 
 class SafetyBot(Bot):
-    def __init__(self, name):
+    def __init__(self, name, eval):
         self._name = name
-        self._color = None 
+        self._color = None
+        self._eval = eval 
 
     def name(self):
         return self._name
@@ -41,36 +45,87 @@ class SafetyBot(Bot):
         self._color = color
 
     def select_move(self, game_state):
-        best_score = float('-inf')
-        best_move = None
+        best_score = MIN_SCORE
+        best_moves = []
         
         for move in legal_moves(game_state):
             # Skip eyes.
             #if game_state.is_valid_move(move) and not game_state.does_move_violate_ko(self.color, move):
                 next_state = game_state.apply_move(move)
-                score = self.evaluate_safety_nuanced(next_state.board)[game_state.next_player.color]
+                score = self._eval(next_state.board)[game_state.next_player.color]
                 if score > best_score:
                     best_score = score
-                    best_move = move
+                    best_moves = [move]
+                elif score == best_score:
+                    best_moves.append(move)
                     
-        return best_move or Move.pass_turn()
+        return random.choice(best_moves) or Move.pass_turn()
 
-    def evaluate_safety_nuanced(self, board):
-        score = {Color.BLACK: 0, Color.WHITE: 0}
-        
-        for _, group in board._grid.items():
-            base_score = len(group.stones)
-            
-            # Modify the score based on the number of liberties.
-            if group.num_liberties == 1:
-                score[group.color] -= base_score  # heavy penalty for Atari
-            elif group.num_liberties == 2:
-                score[group.color] -= base_score * 0.5  # lighter penalty for potential danger
+class MinimaxBot:
+    def __init__(self, name, depth, evaluation_function):
+        self._name = name
+        self.depth = depth
+        self.evaluation_function = evaluation_function
+
+    def select_move(self, game_state):
+        return self._best_move(game_state)
+
+    def _minimax(self, game_state, depth, is_maximizing, alpha, beta):
+        #sys.stdout.write (str(depth))
+        if depth == 0 or game_state.is_over():
+            score = self.evaluation_function(game_state.board)
+           # print (score)
+            if is_maximizing:
+                fx = 1
             else:
-                score[group.color] += base_score  # positive score for safe groups
-            
-            # Additionally, add a small bonus for each liberty for groups with >2 liberties.
-            if group.num_liberties > 2:
-                score[group.color] += group.num_liberties * 0.5  # for instance, half a point per liberty
+                fx = -1
+            return fx * (score[Color.BLACK] - score[Color.WHITE])
         
-        return score
+        #legal_moves = game_state.legal_moves()
+        
+        if is_maximizing:
+            max_eval = MIN_SCORE
+            for move in legal_moves(game_state):
+                new_game_state = game_state.apply_move(move)
+                eval = self._minimax(new_game_state, depth-1, False, alpha, beta)
+                max_eval = max(max_eval, eval)
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            return max_eval
+        else:
+            min_eval = MAX_SCORE
+            for move in legal_moves(game_state):
+                new_game_state = game_state.apply_move(move)
+                eval = self._minimax(new_game_state, depth-1, True, alpha, beta)
+                min_eval = min(min_eval, eval)
+                beta = min(beta, eval)
+                if beta <= alpha:
+                    break
+            return min_eval
+        
+    def _best_move(self, game_state):
+        #legal_moves = game_state.legal_moves()
+        best_move = []
+        best_score = MIN_SCORE #if game_state.next_player == Player(Color.BLACK) else MAX_SCORE  # BLACK maximizes, WHITE minimizes
+
+        for move in legal_moves(game_state):
+            new_game_state = game_state.apply_move(move)
+            current_score = self._minimax(new_game_state, self.depth-1, game_state.next_player == Player(Color.BLACK), MIN_SCORE, MAX_SCORE)
+            if game_state.next_player == Player(Color.BLACK):
+                if current_score > best_score:
+                    best_score = current_score
+                    best_move = [move]
+                elif current_score == best_score:
+                    best_move.append(move)
+            elif game_state.next_player == Player(Color.WHITE):
+                if current_score > best_score:
+                    best_score = current_score
+                    best_move = [move]
+                elif current_score == best_score:
+                    best_move.append(move)
+      #  print (best_score)
+      #  time.sleep (5)
+                
+        return random.choice(best_move)
+
